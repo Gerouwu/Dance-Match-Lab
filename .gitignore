@@ -59,3 +59,5 @@ videos/
 *.mov
 *.mkv
 EOF
+
+.vscode/
