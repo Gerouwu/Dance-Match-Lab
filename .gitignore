@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos
+.env
+.env.*
+.venv/
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Datos pesados
+data/
+videos/
+datasets/
+output/
+models/
+
+# Archivos grandes
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+*.tar
+*.tar.gz
+
+# Modelos ML
+*.pt
+*.pth
+*.onnx
+*.h5
+*.ckpt
+*.weights
+
+# Docker
+*.tar
+docker_images/
+.docker/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+syncdrivebiof-f8c1a6350408.json
+
+# Large video files
+videos/
+*.mp4
+*.avi
+*.mov
+*.mkv
+EOF
