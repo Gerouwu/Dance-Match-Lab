@@ -33,7 +33,7 @@ This is an experimental prototype. It currently supports:
 |       |-- dance_similarity.py        # DTW, scoring, feature selection, intervals
 |       |-- funciones_pose_engine.py   # MediaPipe pose extraction and drawing helpers
 |       |-- landmark_saving.py         # Batch landmark/feature extraction script
-|       `-- pose_engine.py             # Manual pose visualization script
+|       `-- test_env.py                # Runtime dependency check
 |-- data/
 |   |-- input/                         # Optional input videos
 |   `-- output/                        # Optional exported landmarks
@@ -43,15 +43,12 @@ This is an experimental prototype. It currently supports:
 |-- videos/                            # Local video files
 |-- pyproject.toml                     # Direct project dependencies
 |-- uv.lock                            # Reproducible, cross-platform dependency lock
-|-- requirements.txt                   # pip-compatible export of uv.lock
-|-- run_dance_compare.ps1              # Windows launcher using uv
-|-- docker-compose.yml                 # Optional container services
-`-- Dockerfile                         # Optional uv-based worker image
+`-- run_dance_compare.ps1              # Windows launcher using uv
 ```
 
 ## Requirements
 
-The primary workflow is local and uses [uv](https://docs.astral.sh/uv/) to install Python and the locked dependencies. Docker is optional and is not required to run the project.
+The project uses [uv](https://docs.astral.sh/uv/) to install Python and the locked dependencies locally.
 
 Main dependencies:
 
@@ -81,21 +78,6 @@ uv run --locked python app\src\test_env.py
 ```
 
 All project commands should be executed through `uv run --locked`, which uses the exact versions in `uv.lock`.
-
-### pip compatibility
-
-`requirements.txt` is generated from `uv.lock` for environments that cannot use `uv`:
-
-```powershell
-py -3.10 -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements.txt
-```
-
-To refresh this compatibility file after changing dependencies:
-
-```powershell
-uv export --locked --no-dev --no-emit-project --no-hashes --output-file requirements.txt
-```
 
 ## Quick Start
 
@@ -207,29 +189,6 @@ Supported landmark formats:
 - `.csv` files with `33 * (x, y, z, visibility)` landmark coordinates.
 
 If visibility is missing, it is filled with `1.0`.
-
-## Optional Docker Workflow
-
-Docker is a secondary workflow. The local `uv` setup above is sufficient for installation, validation, headless reports, and the desktop interface.
-
-The optional Compose setup includes:
-
-- `mediapipe`: Python processing environment built from the same `pyproject.toml` and `uv.lock`.
-- `n8n`: workflow automation service.
-
-Build and start only the MediaPipe worker:
-
-```powershell
-docker compose up -d mediapipe
-```
-
-Validate the worker environment:
-
-```powershell
-docker compose exec mediapipe uv run --locked python app/src/test_env.py
-```
-
-The Tkinter desktop interface should be run locally because the container is intended for headless processing.
 
 ## Development Notes
 
