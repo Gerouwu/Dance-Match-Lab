@@ -8,6 +8,8 @@ El objetivo es una comparacion flexible de coreografias, no una evaluacion clini
 
 La interfaz muestra puntajes globales, metricas por segmentos y mensajes interpretativos como `Excellent`, `Good`, `Out of Sync` o `Different Movement`.
 
+Si recibiste este proyecto para continuarlo, empieza por [HANDOFF.md](HANDOFF.md), donde se documentan el estado actual, las decisiones tecnicas, las limitaciones y el backlog sugerido.
+
 ## Estado actual
 
 Este es un prototipo experimental. Actualmente permite:
