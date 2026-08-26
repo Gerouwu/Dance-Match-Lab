@@ -209,7 +209,7 @@ def extract_landmarks_from_video(video_path: Path) -> list[tuple[int, np.ndarray
         if exc.name == "mediapipe":
             raise RuntimeError(
                 "No se pudieron extraer landmarks porque este Python no tiene mediapipe. "
-                "Usa Python 3.10 con las dependencias del environment.yml, ejecuta dentro del contenedor, "
+                "Ejecuta 'uv sync --locked' y vuelve a iniciar el comando con 'uv run --locked', "
                 "o pasa landmarks ya extraidos con --user-landmarks."
             ) from exc
         raise

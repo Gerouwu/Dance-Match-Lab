@@ -5,11 +5,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$python = "C:\Users\viejo\anaconda3\envs\biof_docker\python.exe"
+$uv = Get-Command uv -ErrorAction SilentlyContinue
 $script = Join-Path $PSScriptRoot "app\src\dance_compare_ui.py"
 
-if (-not (Test-Path $python)) {
-    throw "No encontre el Python del entorno biof_docker en: $python"
+if (-not $uv) {
+    throw "No se encontro uv. Instalalo desde https://docs.astral.sh/uv/getting-started/installation/"
 }
 
-& $python $script @ArgsFromUser
+& $uv.Source run --locked python $script @ArgsFromUser
+exit $LASTEXITCODE

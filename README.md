@@ -41,15 +41,17 @@ This is an experimental prototype. It currently supports:
 |   |-- features/                      # Cached biomechanical feature matrices
 |   `-- landmarks/                     # Cached landmark arrays
 |-- videos/                            # Local video files
-|-- docker-compose.yml
-|-- Dockerfile
-|-- environment.yml
-`-- run_dance_compare.ps1              # Windows launcher using the biof_docker env
+|-- pyproject.toml                     # Direct project dependencies
+|-- uv.lock                            # Reproducible, cross-platform dependency lock
+|-- requirements.txt                   # pip-compatible export of uv.lock
+|-- run_dance_compare.ps1              # Windows launcher using uv
+|-- docker-compose.yml                 # Optional container services
+`-- Dockerfile                         # Optional uv-based worker image
 ```
 
 ## Requirements
 
-The project is built around the Conda environment `biof_docker`.
+The primary workflow is local and uses [uv](https://docs.astral.sh/uv/) to install Python and the locked dependencies. Docker is optional and is not required to run the project.
 
 Main dependencies:
 
@@ -61,58 +63,70 @@ Main dependencies:
 - Pillow
 - Tkinter
 
-The visual interface uses Tkinter instead of `cv2.imshow`, so it can run even when OpenCV was installed without native HighGUI window support.
+Tkinter is included with the standard CPython installation on Windows. The visual interface uses Tkinter instead of `cv2.imshow`.
 
 ## Environment Setup
 
-Create the environment from `environment.yml`:
+Install `uv`, clone the repository, and run:
 
 ```powershell
-conda env create -f environment.yml
+uv python install 3.10
+uv sync --locked
 ```
 
-Activate it:
+`uv` creates the project environment in `.venv` and uses the Python version pinned in `.python-version`. Verify the complete runtime without activating the environment:
 
 ```powershell
-conda activate biof_docker
+uv run --locked python app\src\test_env.py
 ```
 
-Verify the environment:
+All project commands should be executed through `uv run --locked`, which uses the exact versions in `uv.lock`.
+
+### pip compatibility
+
+`requirements.txt` is generated from `uv.lock` for environments that cannot use `uv`:
 
 ```powershell
-python app\src\test_env.py
+py -3.10 -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
 ```
 
-On this project, avoid running the scripts with the system Python. The expected interpreter is:
+To refresh this compatibility file after changing dependencies:
 
-```text
-C:\Users\viejo\anaconda3\envs\biof_docker\python.exe
+```powershell
+uv export --locked --no-dev --no-emit-project --no-hashes --output-file requirements.txt
 ```
 
 ## Quick Start
 
-Run a demo by comparing the benchmark video against itself:
+Run a demo by comparing the benchmark video against itself. The PowerShell launcher delegates to `uv run --locked`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\run_dance_compare.ps1 --demo
+.\run_dance_compare.ps1 --demo
 ```
 
 Compare the benchmark against a user video:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\run_dance_compare.ps1 --user-video videos\1000160.mp4
+.\run_dance_compare.ps1 --user-video videos\1000160.mp4
 ```
 
 Run only the metric report without opening the interface:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\run_dance_compare.ps1 --user-video videos\1000160.mp4 --headless-report
+.\run_dance_compare.ps1 --user-video videos\1000160.mp4 --headless-report
 ```
 
 Change the interval size for segment-level scoring:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\run_dance_compare.ps1 --user-video videos\1000160.mp4 --interval-seconds 5
+.\run_dance_compare.ps1 --user-video videos\1000160.mp4 --interval-seconds 5
+```
+
+The equivalent cross-platform command is:
+
+```powershell
+uv run --locked python app/src/dance_compare_ui.py --demo
 ```
 
 ## Interface Controls
@@ -183,7 +197,7 @@ Feedback labels are intentionally permissive:
 If landmarks were already extracted, they can be passed directly:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\run_dance_compare.ps1 --user-video videos\1000160.mp4 --user-landmarks data\output\pose_landmarks_frontal.csv
+.\run_dance_compare.ps1 --user-video videos\1000160.mp4 --user-landmarks data\output\pose_landmarks_frontal.csv
 ```
 
 Supported landmark formats:
@@ -194,27 +208,35 @@ Supported landmark formats:
 
 If visibility is missing, it is filled with `1.0`.
 
-## Docker Notes
+## Optional Docker Workflow
 
-The repository includes a Docker setup with:
+Docker is a secondary workflow. The local `uv` setup above is sufficient for installation, validation, headless reports, and the desktop interface.
 
-- `mediapipe`: Python processing environment.
+The optional Compose setup includes:
+
+- `mediapipe`: Python processing environment built from the same `pyproject.toml` and `uv.lock`.
 - `n8n`: workflow automation service.
 
-Start services:
+Build and start only the MediaPipe worker:
 
 ```powershell
-docker compose up -d
+docker compose up -d mediapipe
 ```
 
-The current visual desktop interface is intended to run locally in the Conda environment, because it opens a Tkinter window.
+Validate the worker environment:
+
+```powershell
+docker compose exec mediapipe uv run --locked python app/src/test_env.py
+```
+
+The Tkinter desktop interface should be run locally because the container is intended for headless processing.
 
 ## Development Notes
 
 Recommended workflow:
 
 1. Keep benchmark assets cached in `output/landmarks` and `output/features`.
-2. Use `run_dance_compare.ps1` to avoid accidentally running system Python.
+2. Use `uv run --locked` or `run_dance_compare.ps1` to guarantee the locked environment.
 3. Add new user videos under `videos/`.
 4. Generate or cache landmarks/features for repeated experiments.
 5. Tune feature weights in `dance_similarity.py` as the scoring model evolves.

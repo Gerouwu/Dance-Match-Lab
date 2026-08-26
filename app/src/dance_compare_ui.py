@@ -201,8 +201,8 @@ def main() -> None:
             print("\nNo pude calcular landmarks/features del usuario:")
             print(f"  {exc}")
             print("\nAbrire la interfaz en modo video, sin skeleton del usuario ni score.")
-            print("Para calcular comparacion en este Python 3.13, pasa landmarks ya extraidos:")
-            print("  python app\\src\\dance_compare_ui.py --user-video videos\\1000160.mp4 --user-landmarks data\\output\\pose_landmarks_frontal.csv")
+            print("Tambien puedes pasar landmarks ya extraidos:")
+            print("  uv run --locked python app\\src\\dance_compare_ui.py --user-video videos\\1000160.mp4 --user-landmarks data\\output\\pose_landmarks_frontal.csv")
             fps, frame_count = get_video_info_for_ui(user_video)
             user = DanceSequence(
                 name="Usuario (sin landmarks)",
@@ -215,7 +215,7 @@ def main() -> None:
             )
     else:
         print("Sin video de usuario. La interfaz mostrara un panel de carga pendiente.")
-        print("Cuando tengas el video, ejecuta: python app/src/dance_compare_ui.py --user-video videos/tu_video.mp4")
+        print("Cuando tengas el video, ejecuta: uv run --locked python app/src/dance_compare_ui.py --user-video videos/tu_video.mp4")
 
     if args.headless_report:
         return
