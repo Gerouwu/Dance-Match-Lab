@@ -555,7 +555,7 @@ def visualize_pose_engine(cap):
 
     cv2.destroyAllWindows()
 
-def visualize_pose_engine_realtime(cap):
+def visualize_pose_engine_realtime(cap, mirror=True):
     """
     Visualiza el video frame por frame.
     Muestra el esqueleto y los ángulos sin suavizado offline.
@@ -585,7 +585,8 @@ def visualize_pose_engine_realtime(cap):
             if not ret:
                 break
 
-            frame = cv2.flip(frame, 1)
+            if mirror:
+                frame = cv2.flip(frame, 1)
 
             h, w, _ = frame.shape
 

@@ -97,17 +97,23 @@ ANGLE_LABELS = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Interfaz tipo juego para comparar coreografias con landmarks y DTW."
+        description="Compara dos secuencias de baile con landmarks, biomecanica y DTW."
     )
-    parser.add_argument("--benchmark-id", default="100190", help="Id del benchmark fijo.")
-    parser.add_argument("--benchmark-video", default=None, help="Ruta explicita al video benchmark.")
-    parser.add_argument("--user-video", default=None, help="Ruta al video del usuario.")
+    parser.add_argument(
+        "--reference-video",
+        dest="reference_video",
+        required=True,
+        help="Ruta al video que se usara como secuencia de referencia.",
+    )
+    parser.add_argument("--user-video", default=None, help="Ruta al segundo video que se comparara.")
+    parser.add_argument("--reference-landmarks", default=None, help="Landmarks preprocesados de la referencia (.npy o .csv).")
+    parser.add_argument("--reference-features", default=None, help="Features preprocesadas de la referencia (.npz).")
     parser.add_argument("--user-landmarks", default=None, help="Ruta a landmarks del usuario (.npy o .csv).")
     parser.add_argument("--user-features", default=None, help="Ruta a features del usuario (.npz).")
     parser.add_argument(
         "--demo",
         action="store_true",
-        help="Usa el benchmark como video de usuario para probar la interfaz.",
+        help="Compara la referencia consigo misma para probar el flujo.",
     )
     parser.add_argument(
         "--target-fps",
@@ -137,16 +143,20 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     print(f"Python ejecutado: {sys.executable}")
-    benchmark_video = resolve_benchmark_video(args.benchmark_id, args.benchmark_video)
-    benchmark_landmarks = PROJECT_ROOT / "output" / "landmarks" / f"{args.benchmark_id}_landmarks.npy"
-    benchmark_features = PROJECT_ROOT / "output" / "features" / f"{args.benchmark_id}_features.npz"
+    reference_video = resolve_video_path(args.reference_video, "referencia")
+    reference_landmarks = resolve_optional_path(args.reference_landmarks)
+    reference_features = resolve_optional_path(args.reference_features)
+    if reference_landmarks is None:
+        reference_landmarks = default_cache_path(reference_video, "landmarks")
+    if reference_features is None:
+        reference_features = default_cache_path(reference_video, "features")
 
-    print(f"Benchmark: {benchmark_video}")
+    print(f"Referencia: {reference_video}")
     benchmark = sequence_from_video(
-        name=f"Benchmark {args.benchmark_id}",
-        video_path=benchmark_video,
-        landmarks_path=benchmark_landmarks,
-        features_path=benchmark_features,
+        name=f"Referencia: {reference_video.stem}",
+        video_path=reference_video,
+        landmarks_path=reference_landmarks,
+        features_path=reference_features,
         cache_missing=args.cache_missing,
     )
 
@@ -154,7 +164,7 @@ def main() -> None:
 
     user: DanceSequence | None = None
     comparison: DanceComparison | None = None
-    user_video = resolve_user_video(args.user_video, benchmark_video, args.demo)
+    user_video = resolve_user_video(args.user_video, reference_video, args.demo)
 
     if args.demo:
         user = DanceSequence(
@@ -202,7 +212,7 @@ def main() -> None:
             print(f"  {exc}")
             print("\nAbrire la interfaz en modo video, sin skeleton del usuario ni score.")
             print("Tambien puedes pasar landmarks ya extraidos:")
-            print("  uv run --locked python app\\src\\dance_compare_ui.py --user-video videos\\1000160.mp4 --user-landmarks data\\output\\pose_landmarks_frontal.csv")
+            print("  uv run --locked python app\\src\\dance_compare_ui.py --reference-video videos\\referencia.mp4 --user-video videos\\usuario.mp4 --user-landmarks output\\landmarks\\usuario_landmarks.npy")
             fps, frame_count = get_video_info_for_ui(user_video)
             user = DanceSequence(
                 name="Usuario (sin landmarks)",
@@ -214,8 +224,8 @@ def main() -> None:
                 feature_names=[],
             )
     else:
-        print("Sin video de usuario. La interfaz mostrara un panel de carga pendiente.")
-        print("Cuando tengas el video, ejecuta: uv run --locked python app/src/dance_compare_ui.py --user-video videos/tu_video.mp4")
+        print("Sin segundo video. La interfaz mostrara un panel de carga pendiente.")
+        print("Agrega --user-video videos/usuario.mp4 para realizar una comparacion.")
 
     if args.headless_report:
         return
@@ -223,40 +233,21 @@ def main() -> None:
     run_interface(benchmark, user, comparison, args.interval_seconds)
 
 
-def resolve_benchmark_video(benchmark_id: str, explicit_path: str | None) -> Path:
-    if explicit_path:
-        path = Path(explicit_path).expanduser().resolve()
-        if path.exists():
-            return path
-        raise FileNotFoundError(f"No existe el benchmark indicado: {path}")
-
-    candidates = [
-        PROJECT_ROOT / "videos" / f"{benchmark_id}.mp4",
-        PROJECT_ROOT / "data" / "input" / f"{benchmark_id}.mp4",
-        Path.cwd() / "videos" / f"{benchmark_id}.mp4",
-        Path.cwd() / "data" / "input" / f"{benchmark_id}.mp4",
-        Path("/workspace/input") / f"{benchmark_id}.mp4",
-    ]
-
-    for path in candidates:
-        if path.exists():
-            return path.resolve()
-
-    joined = "\n".join(str(path) for path in candidates)
-    raise FileNotFoundError(f"No encontre el video benchmark {benchmark_id}. Busque en:\n{joined}")
-
-
-def resolve_user_video(user_video: str | None, benchmark_video: Path, demo: bool) -> Path | None:
-    if demo:
-        return benchmark_video
-    if not user_video:
-        return None
-    path = Path(user_video).expanduser()
+def resolve_video_path(value: str, label: str) -> Path:
+    path = Path(value).expanduser()
     if not path.is_absolute():
         path = (PROJECT_ROOT / path).resolve()
     if not path.exists():
-        raise FileNotFoundError(f"No existe el video de usuario: {path}")
+        raise FileNotFoundError(f"No existe el video de {label}: {path}")
     return path
+
+
+def resolve_user_video(user_video: str | None, reference_video: Path, demo: bool) -> Path | None:
+    if demo:
+        return reference_video
+    if not user_video:
+        return None
+    return resolve_video_path(user_video, "comparacion")
 
 
 def resolve_optional_path(value: str | None) -> Path | None:
@@ -285,7 +276,7 @@ def default_cache_path(video_path: Path, kind: str) -> Path | None:
     for path in candidates:
         if path.exists():
             return path
-    return None
+    return candidates[0]
 
 
 def get_video_info_for_ui(video_path: Path) -> tuple[float, int]:
@@ -338,7 +329,7 @@ def run_interface(
     cap_u = cv2.VideoCapture(str(user.video_path)) if user is not None else None
 
     if not cap_b.isOpened():
-        raise FileNotFoundError(f"No se pudo abrir benchmark: {benchmark.video_path}")
+        raise FileNotFoundError(f"No se pudo abrir la referencia: {benchmark.video_path}")
     if user is not None and (cap_u is None or not cap_u.isOpened()):
         raise FileNotFoundError(f"No se pudo abrir usuario: {user.video_path}")
 
@@ -399,7 +390,7 @@ def run_interface(
             cap_b.set(cv2.CAP_PROP_POS_FRAMES, 0)
             ret_b, frame_b = cap_b.read()
             if not ret_b:
-                return placeholder_full_canvas("No se pudo leer el benchmark")
+                return placeholder_full_canvas("No se pudo leer la referencia")
 
         frame_b = prepare_video_frame(frame_b, benchmark, frame_idx)
 

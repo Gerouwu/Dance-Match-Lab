@@ -1,56 +1,52 @@
-# Dance Biomechanics Comparator
+# Dance Match Lab
 
-Dance Biomechanics Comparator is a Python-based prototype for comparing dance choreographies using body landmarks, joint angles, and biomechanical features. The project uses video `100190` as the reference benchmark and is designed to support comparison against a second user-provided video.
+Dance Match Lab es un prototipo general para comparar dos secuencias de baile mediante landmarks corporales, angulos articulares y caracteristicas biomecanicas. Un video se toma como referencia y el otro como la ejecucion que se desea evaluar; el proyecto no depende de un video, identificador o coreografia especificos.
 
-The system aims to create a game-like visual experience inspired by dance rhythm games, displaying two choreographies side by side with body landmarks, skeletal connections, and relevant joint angles. It computes global and interval-based similarity scores using Dynamic Time Warping (DTW) and biomechanical analysis strategies.
+El sistema presenta ambas secuencias lado a lado con landmarks, conexiones del esqueleto y angulos relevantes. Tambien calcula similitud global, resultados por grupos corporales y resultados por intervalos usando Dynamic Time Warping (DTW).
 
-Rather than performing a rigid clinical movement assessment, this project focuses on flexible choreography comparison. It tolerates natural differences in timing, speed, movement amplitude, and individual dance style. The system also analyzes the features generated in `biomech_features.py`, selects the most useful ones, normalizes them, and complements them when necessary.
+El objetivo es una comparacion flexible de coreografias, no una evaluacion clinica rigida. El algoritmo tolera diferencias naturales de tiempo, velocidad, amplitud y estilo, y selecciona las features mas utiles generadas por `biomech_features.py`.
 
-The expected result is a modular interface capable of visualizing choreography similarity through scores, segment-level metrics, and interpretive feedback such as `Excellent`, `Good`, `Out of Sync`, or `Different Movement`.
+La interfaz muestra puntajes globales, metricas por segmentos y mensajes interpretativos como `Excellent`, `Good`, `Out of Sync` o `Different Movement`.
 
-## Current Status
+## Estado actual
 
-This is an experimental prototype. It currently supports:
+Este es un prototipo experimental. Actualmente permite:
 
-- Benchmark video comparison using `100190`.
-- User video comparison through MediaPipe landmark extraction.
-- Side-by-side visual interface.
-- Body landmark and skeleton overlays.
-- Selected joint angle visualization.
-- DTW-based global similarity score.
-- Similarity scores by body group: arms, legs, torso, and motion.
-- Interval-based similarity metrics.
-- Interpretive feedback per segment.
+- Comparar dos videos de baile proporcionados por el usuario.
+- Extraer landmarks con MediaPipe.
+- Visualizar ambas secuencias lado a lado.
+- Dibujar esqueleto y angulos articulares seleccionados.
+- Calcular similitud global con DTW.
+- Calcular resultados de brazos, piernas, torso y movimiento.
+- Generar metricas y feedback por intervalos.
 
-## Project Structure
+## Estructura del proyecto
 
 ```text
 .
 |-- app/
 |   `-- src/
-|       |-- biomech_features.py        # Biomechanical feature extraction
-|       |-- dance_compare_ui.py        # Main visual comparison interface
-|       |-- dance_similarity.py        # DTW, scoring, feature selection, intervals
-|       |-- funciones_pose_engine.py   # MediaPipe pose extraction and drawing helpers
-|       |-- landmark_saving.py         # Batch landmark/feature extraction script
-|       `-- test_env.py                # Runtime dependency check
-|-- data/
-|   |-- input/                         # Optional input videos
-|   `-- output/                        # Optional exported landmarks
+|       |-- biomech_features.py        # Extraccion de features biomecanicas
+|       |-- dance_compare_ui.py        # Interfaz y entrada principal
+|       |-- dance_similarity.py        # DTW, puntajes, seleccion e intervalos
+|       |-- funciones_pose_engine.py   # Extraccion y dibujo con MediaPipe
+|       |-- landmark_saving.py         # Procesamiento de uno o varios videos
+|       |-- realtime_landmarks.py      # Landmarks desde camara o video
+|       `-- test_env.py                # Validacion del entorno
 |-- output/
-|   |-- features/                      # Cached biomechanical feature matrices
-|   `-- landmarks/                     # Cached landmark arrays
-|-- videos/                            # Local video files
-|-- pyproject.toml                     # Direct project dependencies
-|-- uv.lock                            # Reproducible, cross-platform dependency lock
-`-- run_dance_compare.ps1              # Windows launcher using uv
+|   |-- features/                      # Matrices procesadas, no versionadas
+|   `-- landmarks/                     # Landmarks procesados, no versionados
+|-- videos/                            # Videos locales, no versionados
+|-- pyproject.toml                     # Dependencias directas
+|-- uv.lock                            # Versiones reproducibles
+`-- run_dance_compare.ps1              # Lanzador para Windows
 ```
 
-## Requirements
+## Requisitos
 
-The project uses [uv](https://docs.astral.sh/uv/) to install Python and the locked dependencies locally.
+El proyecto usa [uv](https://docs.astral.sh/uv/) para instalar Python y las dependencias bloqueadas.
 
-Main dependencies:
+Dependencias principales:
 
 - Python 3.10
 - OpenCV
@@ -60,164 +56,234 @@ Main dependencies:
 - Pillow
 - Tkinter
 
-Tkinter is included with the standard CPython installation on Windows. The visual interface uses Tkinter instead of `cv2.imshow`.
+Tkinter viene incluido con la instalacion estandar de CPython en Windows. La interfaz principal usa Tkinter.
 
-## Environment Setup
+## Preparar el entorno
 
-Install `uv`, clone the repository, and run:
+Instala `uv`, clona el repositorio y ejecuta:
 
 ```powershell
 uv python install 3.10
 uv sync --locked
 ```
 
-`uv` creates the project environment in `.venv` and uses the Python version pinned in `.python-version`. Verify the complete runtime without activating the environment:
+`uv` crea `.venv` y utiliza la version definida en `.python-version`. Verifica el entorno sin activarlo manualmente:
 
 ```powershell
 uv run --locked python app\src\test_env.py
 ```
 
-All project commands should be executed through `uv run --locked`, which uses the exact versions in `uv.lock`.
+Ejecuta los comandos del proyecto mediante `uv run --locked` para usar las versiones exactas de `uv.lock`.
 
-## Quick Start
+## Agregar videos propios
 
-Run a demo by comparing the benchmark video against itself. The PowerShell launcher delegates to `uv run --locked`:
+El repositorio no incluye los videos usados durante el desarrollo por su tamano y privacidad. Cada usuario debe proporcionar sus propios archivos.
 
-```powershell
-.\run_dance_compare.ps1 --demo
-```
-
-Compare the benchmark against a user video:
+1. Crea la carpeta local `videos/` si todavia no existe:
 
 ```powershell
-.\run_dance_compare.ps1 --user-video videos\1000160.mp4
+New-Item -ItemType Directory -Force videos
 ```
 
-Run only the metric report without opening the interface:
+2. Copia o arrastra al menos dos videos dentro de esa carpeta. Por ejemplo:
+
+```text
+videos/
+  baile_referencia.mp4
+  baile_usuario.mp4
+```
+
+Tambien puedes pasar rutas absolutas y conservar los archivos en otra ubicacion. Se admiten los formatos que OpenCV pueda abrir; para este flujo se recomiendan `.mp4`, `.avi`, `.mov` o `.mkv`.
+
+Para mejorar la deteccion:
+
+- Muestra el cuerpo completo durante la mayor parte del video.
+- Usa iluminacion suficiente y evita oclusiones.
+- Procura que solo aparezca una persona principal.
+- Usa un encuadre y angulo de camara parecidos en ambas secuencias.
+- Emplea nombres de archivo distintos, porque el nombre se usa para identificar el cache.
+
+Los directorios `videos/` y `output/` estan ignorados por Git. Los videos y resultados procesados permanecen locales y no deben subirse al repositorio.
+
+## Ver landmarks en tiempo real
+
+Para abrir la camara principal y dibujar el esqueleto y los angulos en tiempo real:
 
 ```powershell
-.\run_dance_compare.ps1 --user-video videos\1000160.mp4 --headless-report
+uv run --locked python app\src\realtime_landmarks.py --camera 0
 ```
 
-Change the interval size for segment-level scoring:
+Si tienes varias camaras, prueba `--camera 1` o `--camera 2`. Para visualizar los landmarks sobre un video local:
 
 ```powershell
-.\run_dance_compare.ps1 --user-video videos\1000160.mp4 --interval-seconds 5
+uv run --locked python app\src\realtime_landmarks.py --video videos\baile_usuario.mp4
 ```
 
-The equivalent cross-platform command is:
+La camara se refleja horizontalmente de forma predeterminada; los archivos de video no. Puedes cambiarlo con `--mirror` o `--no-mirror`. Presiona `Q` dentro de la ventana para salir.
+
+## Procesar videos
+
+No es obligatorio preprocesar manualmente. La comparacion puede extraer y guardar landmarks/features de ambos videos al usar `--cache-missing`.
+
+Para procesarlos antes de comparar:
 
 ```powershell
-uv run --locked python app/src/dance_compare_ui.py --demo
+uv run --locked python app\src\landmark_saving.py videos\baile_referencia.mp4 videos\baile_usuario.mp4
 ```
 
-## Interface Controls
-
-When the visual interface is open:
-
-- `Space`: pause or resume playback.
-- `R`: restart playback.
-- `Q` or `Esc`: close the interface.
-
-## How the Comparison Works
-
-The comparison pipeline has four main stages:
-
-1. Extract body landmarks from each video using MediaPipe Pose.
-2. Convert landmarks into biomechanical features.
-3. Select and normalize dance-relevant features.
-4. Compare both sequences with DTW and convert distances into similarity scores.
-
-DTW is used because two dancers may perform the same choreography with different timing, small delays, or speed variations. This makes the comparison more tolerant than frame-by-frame matching.
-
-## Feature Strategy
-
-The full biomechanical feature set can contain hundreds of columns. For choreography comparison, the system does not use every feature blindly.
-
-Currently prioritized:
-
-- Normalized key body landmarks.
-- Major joint angles.
-- Segment orientations and lengths.
-- Important body distances.
-- Landmark speeds.
-- Motion energy.
-- Symmetry indicators.
-- Trunk and posture-related metrics.
-
-Currently de-emphasized or discarded from the main score:
-
-- Raw body scale.
-- Individual visibility flags.
-- High-noise acceleration features.
-- Features with too many missing values.
-
-All selected features are robustly normalized before DTW.
-
-## Scoring
-
-The system computes:
-
-- Global similarity score from `0` to `100`.
-- Body group scores:
-  - Arms
-  - Legs
-  - Torso
-  - Motion
-- Interval-level scores.
-- Segment feedback labels.
-
-Feedback labels are intentionally permissive:
-
-- `Excellent`: strong similarity in movement pattern, posture, and rhythm.
-- `Good`: acceptable similarity with natural variations.
-- `Out of Sync`: similar movement pattern with timing differences.
-- `Different Movement`: clear biomechanical difference from the benchmark segment.
-
-## Using Precomputed Landmarks
-
-If landmarks were already extracted, they can be passed directly:
+Si no pasas rutas, el comando procesa todos los videos compatibles que encuentre directamente en `videos/`:
 
 ```powershell
-.\run_dance_compare.ps1 --user-video videos\1000160.mp4 --user-landmarks data\output\pose_landmarks_frontal.csv
+uv run --locked python app\src\landmark_saving.py
 ```
 
-Supported landmark formats:
+Los resultados se guardan como:
 
-- `.npy` arrays saved as `(frame_id, landmarks)` pairs.
-- `.csv` files with `33 * (x, y, z)` landmark coordinates.
-- `.csv` files with `33 * (x, y, z, visibility)` landmark coordinates.
+```text
+output/
+  landmarks/
+    baile_referencia_landmarks.npy
+    baile_usuario_landmarks.npy
+  features/
+    baile_referencia_features.npz
+    baile_usuario_features.npz
+```
 
-If visibility is missing, it is filled with `1.0`.
+## Comparar dos videos
 
-## Development Notes
+El primer archivo representa la secuencia de referencia. El segundo representa la secuencia que se desea comparar.
 
-Recommended workflow:
+En Windows, abre la interfaz con:
 
-1. Keep benchmark assets cached in `output/landmarks` and `output/features`.
-2. Use `uv run --locked` or `run_dance_compare.ps1` to guarantee the locked environment.
-3. Add new user videos under `videos/`.
-4. Generate or cache landmarks/features for repeated experiments.
-5. Tune feature weights in `dance_similarity.py` as the scoring model evolves.
+```powershell
+.\run_dance_compare.ps1 `
+  --reference-video videos\baile_referencia.mp4 `
+  --user-video videos\baile_usuario.mp4 `
+  --cache-missing
+```
 
-## Limitations
+El comando equivalente en cualquier sistema es:
 
-- This is not a clinical biomechanics assessment tool.
-- The scoring model is heuristic and should be calibrated with more dance examples.
-- Camera angle, framing, occlusion, and MediaPipe detection quality can affect scores.
-- DTW improves tolerance to timing differences, but large choreography mismatches may still produce misleading alignments.
-- Current feedback labels are rule-based and should be validated with real users.
+```powershell
+uv run --locked python app/src/dance_compare_ui.py --reference-video videos/baile_referencia.mp4 --user-video videos/baile_usuario.mp4 --cache-missing
+```
 
-## Roadmap Ideas
+Para calcular e imprimir el reporte sin abrir la interfaz:
 
-- Add a file picker for user video selection.
-- Export comparison reports to CSV or JSON.
-- Save annotated comparison videos.
-- Support multiple benchmark choreographies.
-- Add per-joint score visualization.
-- Improve temporal feedback for early/late movement detection.
-- Add Streamlit or PyQt interface variants.
-- Train a calibrated scoring model using labeled dance attempts.
+```powershell
+.\run_dance_compare.ps1 --reference-video videos\baile_referencia.mp4 --user-video videos\baile_usuario.mp4 --cache-missing --headless-report
+```
+
+Para comprobar el flujo comparando un video consigo mismo:
+
+```powershell
+.\run_dance_compare.ps1 --reference-video videos\baile_referencia.mp4 --demo --cache-missing --headless-report
+```
+
+La primera ejecucion tarda mas porque extrae los landmarks y las features. Las siguientes ejecuciones reutilizan automaticamente los archivos de `output/` cuyo nombre coincide con el nombre del video.
+
+## Controles de la interfaz
+
+Cuando la interfaz esta abierta:
+
+- `Space`: pausar o continuar.
+- `R`: reiniciar la reproduccion.
+- `Q` o `Esc`: cerrar.
+
+## Como funciona la comparacion
+
+El proceso tiene cuatro etapas:
+
+1. Extraer landmarks corporales de cada video con MediaPipe Pose.
+2. Convertirlos en features biomecanicas.
+3. Seleccionar y normalizar las features relevantes para baile.
+4. Alinear ambas secuencias con DTW y convertir las distancias en puntajes.
+
+DTW permite comparar una misma coreografia aunque existan retrasos o diferencias de velocidad, por lo que resulta mas flexible que comparar los videos cuadro por cuadro.
+
+## Features utilizadas
+
+El conjunto biomecanico puede contener cientos de columnas. El puntaje prioriza:
+
+- Landmarks corporales normalizados.
+- Angulos articulares principales.
+- Orientaciones y longitudes de segmentos.
+- Distancias corporales importantes.
+- Velocidades y energia de movimiento.
+- Simetria, tronco y postura.
+
+Se descartan o reducen:
+
+- Escala corporal sin normalizar.
+- Flags individuales de visibilidad.
+- Aceleraciones con mucho ruido.
+- Features con demasiados valores faltantes.
+
+Las features seleccionadas se normalizan antes de aplicar DTW.
+
+## Puntajes
+
+El sistema calcula:
+
+- Similitud global de `0` a `100`.
+- Puntajes de brazos, piernas, torso y movimiento.
+- Puntajes por intervalos.
+- Mensajes interpretativos por segmento.
+
+Los mensajes son deliberadamente flexibles:
+
+- `Excellent`: patron, postura y ritmo muy similares.
+- `Good`: similitud aceptable con variaciones naturales.
+- `Out of Sync`: movimiento parecido con diferencia temporal.
+- `Different Movement`: diferencia biomecanica clara respecto de la referencia.
+
+## Usar landmarks y features preprocesados
+
+Si los archivos fueron procesados con `landmark_saving.py` y conservan el nombre esperado dentro de `output/`, se cargan automaticamente. Tambien pueden indicarse rutas explicitas:
+
+```powershell
+.\run_dance_compare.ps1 `
+  --reference-video videos\baile_referencia.mp4 `
+  --reference-landmarks output\landmarks\baile_referencia_landmarks.npy `
+  --reference-features output\features\baile_referencia_features.npz `
+  --user-video videos\baile_usuario.mp4 `
+  --user-landmarks output\landmarks\baile_usuario_landmarks.npy `
+  --user-features output\features\baile_usuario_features.npz
+```
+
+Formatos de landmarks admitidos:
+
+- `.npy` guardado como pares `(frame_id, landmarks)`.
+- `.csv` con `33 * (x, y, z)` coordenadas.
+- `.csv` con `33 * (x, y, z, visibility)` coordenadas.
+
+Si falta la visibilidad, se completa con `1.0`.
+
+## Flujo recomendado de desarrollo
+
+1. Guarda cada video con un nombre descriptivo y unico.
+2. Usa `uv run --locked` o `run_dance_compare.ps1`.
+3. Revisa primero la deteccion con `realtime_landmarks.py`.
+4. Genera o conserva landmarks/features para experimentos repetidos.
+5. Ajusta los pesos en `dance_similarity.py` a medida que evolucione el modelo.
+
+## Limitaciones
+
+- No es una herramienta de evaluacion biomecanica clinica.
+- El puntaje es heuristico y requiere calibracion con mas ejemplos.
+- El angulo, encuadre, oclusiones y calidad de deteccion afectan los resultados.
+- DTW tolera diferencias temporales, pero no corrige coreografias completamente distintas.
+- Los mensajes actuales se basan en reglas y deben validarse con usuarios reales.
+
+## Ideas futuras
+
+- Selector visual de archivos.
+- Exportacion de reportes a CSV o JSON.
+- Videos anotados con el resultado.
+- Catalogo de coreografias de referencia.
+- Puntajes por articulacion.
+- Feedback temporal mas preciso.
+- Calibracion con intentos de baile etiquetados.
 
 ## License
 

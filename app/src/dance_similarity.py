@@ -761,7 +761,7 @@ def interval_feedback(
         return "Bien", "Similitud aceptable con variaciones naturales"
     if score >= 58 and lagged:
         return "Desfasado", "La forma general aparece antes o despues"
-    return "Movimiento diferente", "El patron biomecanico se aleja del benchmark"
+    return "Movimiento diferente", "El patron biomecanico se aleja de la referencia"
 
 
 def build_benchmark_to_user_frame_map(
