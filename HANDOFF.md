@@ -63,7 +63,7 @@ Ejecuta una comparacion completa:
   --cache-missing
 ```
 
-La guia detallada de uso esta en [README.md](README.md).
+La guia detallada de uso esta en [README.md](README.md). La arquitectura interna, los contratos de datos y cada script Python se explican en [TECHNICAL_GUIDE.md](TECHNICAL_GUIDE.md).
 
 ## Mapa del codigo
 
