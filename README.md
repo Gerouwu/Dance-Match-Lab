@@ -103,7 +103,7 @@ Para mejorar la deteccion:
 - Usa un encuadre y angulo de camara parecidos en ambas secuencias.
 - Emplea nombres de archivo distintos, porque el nombre se usa para identificar el cache.
 
-Los directorios `videos/` y `output/` estan ignorados por Git. Los videos y resultados procesados permanecen locales y no deben subirse al repositorio.
+La estructura vacia de `videos/`, `output/landmarks/` y `output/features/` si se versiona para que aparezca al clonar el repositorio. Su contenido permanece ignorado por Git: los videos y resultados procesados son locales y no deben subirse al repositorio.
 
 ## Ver landmarks en tiempo real
 

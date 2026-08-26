@@ -14,12 +14,22 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Datos pesados
+# Carpetas locales no incluidas en la arquitectura publica
 data/
-videos/
 datasets/
-output/
 models/
+
+# Versionar la estructura, pero no su contenido generado o pesado
+videos/*
+!videos/.gitkeep
+
+output/*
+!output/features/
+!output/landmarks/
+output/features/*
+!output/features/.gitkeep
+output/landmarks/*
+!output/landmarks/.gitkeep
 
 # Archivos grandes
 *.mp4
