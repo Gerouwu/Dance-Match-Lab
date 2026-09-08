@@ -10,6 +10,8 @@ La interfaz muestra puntajes globales, metricas por segmentos y mensajes interpr
 
 Si recibiste este proyecto para continuarlo, empieza por [HANDOFF.md](HANDOFF.md), donde se documentan el estado actual, las decisiones tecnicas, las limitaciones y el backlog sugerido. La arquitectura y el funcionamiento de cada script se explican en [TECHNICAL_GUIDE.md](TECHNICAL_GUIDE.md).
 
+A su vez, la razón de la construcción del repositorio y su vision a largo plazo esta en [VISION.md](VISION.md)
+
 ## Estado actual
 
 Este es un prototipo experimental. Actualmente permite:
